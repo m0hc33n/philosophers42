@@ -40,7 +40,7 @@ void	*philosophers(void *p)
 
 	philo = (t_philo *)p;
 	if (philo->id % 2 == 0)
-		usleep(500);
+		usleep(15000);
 	while (true)
 	{
 		eat(philo);
