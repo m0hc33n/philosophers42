@@ -4,7 +4,7 @@ static bool	av_extractor(t_lifecycle *lc, char **av)
 {
 	if (!fetch_value(av[1], &lc->philo_nbr)
 		|| lc->philo_nbr < 2
-		|| lc->philo_nbr >= 200
+		|| lc->philo_nbr > 200
 		|| !fetch_value(av[2], &lc->ttd)
 		|| !fetch_value(av[3], &lc->tte)
 		|| !fetch_value(av[4], &lc->tts)
