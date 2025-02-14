@@ -33,7 +33,7 @@ void	*philosophers(void *p)
 	pthread_create(&philo->pthread_tracer, NULL,
 		philo_monitor, philo);
 	if (philo->id % 2 == 0)
-		usleep(500);
+		usleep(15000);
 	while (!philo->philo_die)
 	{
 		if (philo->local_shifts.is_set && !philo->local_shifts.shifts_nbr)
