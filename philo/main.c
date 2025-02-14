@@ -37,7 +37,6 @@ static void	go(t_philo **philo)
 		(*philo) = (*philo)->flink;
 		if ((*philo)->id == 1)
 			break ;
-		usleep(100);
 	}
 	pthread_join((*philo)->lc->pthread_tracer, NULL);
 	while (true)

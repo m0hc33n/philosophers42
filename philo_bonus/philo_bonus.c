@@ -11,7 +11,6 @@ static void	eat(t_philo *philo)
 	philo->last_meal_tv = get_current_time();
 	sem_post(philo->lc->sem_meal_check);
 	usleep(philo->lc->tte * 1000);
-	philo->local_shifts.shifts_nbr--;
 	sem_post(philo->lc->sem_pool);
 	sem_post(philo->lc->sem_pool);
 }
@@ -21,6 +20,8 @@ static void	sleep_think(t_philo *philo)
 	stdlog(philo, ISSLEEPING);
 	usleep(philo->lc->tts * 1000);
 	stdlog(philo, ISTHINKING);
+	if (philo->local_shifts.is_set)
+		philo->local_shifts.shifts_nbr--;
 }
 
 void	*philosophers(void *p)
@@ -31,6 +32,8 @@ void	*philosophers(void *p)
 	philo->last_meal_tv = get_current_time();
 	pthread_create(&philo->pthread_tracer, NULL,
 		philo_monitor, philo);
+	if (philo->id % 2 == 0)
+		usleep(500);
 	while (!philo->philo_die)
 	{
 		if (philo->local_shifts.is_set && !philo->local_shifts.shifts_nbr)

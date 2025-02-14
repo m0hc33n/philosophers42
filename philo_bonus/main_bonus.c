@@ -3,7 +3,7 @@
 static void	usage(void)
 {
 	printf("Usage:\n\t"
-		"./philosophers <philo> <ttd> <tte> <tts> [shifts]\n"
+		"./philosophers_bonus <philo> <ttd> <tte> <tts> [shifts]\n"
 		"\nphilo  : number of philosophers (must be gt 1 and le 200)"
 		"\nttd    : time to die"
 		"\ntte    : time to eat"
@@ -31,7 +31,6 @@ static int32_t	go(t_lifecycle *lc)
 		if (pid == CHILDPID)
 			philosophers(&lc->philosophers[i]);
 		lc->philosophers[i].pid = pid;
-		usleep(1000);
 		i++;
 	}
 	return (SUCCESS);

@@ -39,6 +39,8 @@ void	*philosophers(void *p)
 	t_philo	*philo;
 
 	philo = (t_philo *)p;
+	if (philo->id % 2 == 0)
+		usleep(500);
 	while (true)
 	{
 		eat(philo);
