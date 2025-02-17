@@ -2,14 +2,14 @@
 
 static void	err(t_status errnum)
 {
-	printf("\n[!!] ERROR : %d\n\n", errnum);
+	printf("\n[!!] ERROR : %#08x\n\n", errnum);
 }
 
 static void	usage(void)
 {
 	printf("Usage:\n\t"
 		"./philosophers <philo> <ttd> <tte> <tts> [shifts]\n"
-		"\nphilo  : number of philosophers (must be gt 1)"
+		"\nphilo  : number of philosophers"
 		"\nttd    : time to die"
 		"\ntte    : time to eat"
 		"\ntts    : time to sleep"
@@ -22,18 +22,20 @@ static void	usage(void)
  * CREATE PHILO TRACER (PHILO MONITOR)
  * CREATE PHILO THREADS
 */
-static void	go(t_philo **philo)
+static t_status	go(t_philo **philo)
 {
-	size_t	ct;
-
-	pthread_create(&(*philo)->lc->pthread_tracer, NULL,
-		philo_monitor, *philo);
-	ct = get_current_time();
-	(*philo)->lc->start_tv = ct;
+	if (pthread_create(&(*philo)->lc->pthread_tracer, NULL,
+			philo_monitor, *philo) != 0)
+		return (THRERROR);
+	(*philo)->lc->start_tv = get_current_time();
 	while (true)
 	{
-		pthread_create(&(*philo)->pthread, NULL, philosophers, *philo);
-		(*philo)->last_meal_tv = ct;
+		if (pthread_create(&(*philo)->pthread, NULL, philosophers, *philo) != 0)
+			return (THRERROR);
+		philo_set_uint64(
+			&(*philo)->last_meal_tv,
+			(*philo)->lc->start_tv,
+			&(*philo)->lc->meal_check.mutex);
 		(*philo) = (*philo)->flink;
 		if ((*philo)->id == 1)
 			break ;
@@ -46,6 +48,7 @@ static void	go(t_philo **philo)
 		if ((*philo)->id == 1)
 			break ;
 	}
+	return (SUCCESS);
 }
 
 /*
@@ -62,7 +65,9 @@ int	main(int ac, char **av)
 	status = philo_init(&philo, &lc, ac, av);
 	if (status)
 		return (err(status), usage(), philo_exit(&philo, &lc), FAILURE);
-	go(&philo);
+	status = go(&philo);
+	if (status)
+		return (err(status), usage(), philo_exit(&philo, &lc), FAILURE);
 	philo_exit(&philo, &lc);
 	return (SUCCESS);
 }

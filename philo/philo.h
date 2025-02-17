@@ -23,13 +23,18 @@
 # define DIED "died"
 
 // STATUS CODE
+// ARGERROR		: see usage;
+// MALERROR		: malloc() failed;
+// MUTERROR		: pthread_mutex_init failed;
+// THRERROR		: pthread_create failed;
 typedef enum e_status
 {
-	SUCCESS = 0,
-	FAILURE = 1,
-	ARGERROR = 100,
-	MALERROR = 101,
-	MUTERROR = 102,
+	SUCCESS		= 0x000000,
+	FAILURE		= 0x000001,
+	ARGERROR	= 0x000002,
+	MALERROR	= 0x000003,
+	MUTERROR	= 0x000004,
+	THRERROR	= 0X000005
 }	t_status;
 
 // number_of_times_each_philosopher_must_eat
@@ -70,7 +75,7 @@ typedef struct s_lifecycle
 	t_mutex			stdlog_mutex;
 	t_mutex			meal_check;
 	t_mutex			death_check;
-	size_t			start_tv;
+	uint64_t		start_tv;
 }	t_lifecycle;
 
 /*
@@ -86,7 +91,7 @@ typedef struct s_philo
 	t_shifts		local_shifts;
 	pthread_t		pthread;
 	t_mutex			fork_mutex;
-	size_t			last_meal_tv;
+	uint64_t		last_meal_tv;
 	t_lifecycle		*lc;
 	struct s_philo	*flink;
 	struct s_philo	*blink;
@@ -107,5 +112,8 @@ bool		is_philo_die(t_lifecycle *lc);
 // TOOLS
 void		stdlog(t_philo *philo, const char *msg);
 size_t		get_current_time(void);
+uint64_t	philo_get_uint64(void *var, pthread_mutex_t *pmutex);
+void		philo_dec_uint64(void *var, pthread_mutex_t *pmutex, uint64_t dec);
+void		philo_set_uint64(void *var, uint64_t val, pthread_mutex_t *pmutex);
 
 #endif

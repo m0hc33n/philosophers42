@@ -21,22 +21,22 @@ bool	is_philo_die(t_lifecycle *lc)
 
 static bool	death_monitor(t_philo *philo)
 {
-	size_t	tv;
+	uint64_t	tv;
+	uint64_t	ltv;
+	bool		fdeath;
 
-	pthread_mutex_lock(&philo->lc->meal_check.mutex);
+	fdeath = false;
 	tv = get_current_time();
-	if (philo->last_meal_tv
-		&& tv - philo->last_meal_tv > philo->lc->ttd)
+	ltv = philo_get_uint64(&philo->last_meal_tv, &philo->lc->meal_check.mutex);
+	if (ltv && tv - ltv > philo->lc->ttd)
 	{
 		stdlog(philo, DIED);
 		pthread_mutex_lock(&philo->lc->death_check.mutex);
 		philo->lc->philo_die = true;
 		pthread_mutex_unlock(&philo->lc->death_check.mutex);
-		pthread_mutex_unlock(&philo->lc->meal_check.mutex);
-		return (true);
+		fdeath = true;
 	}
-	pthread_mutex_unlock(&philo->lc->meal_check.mutex);
-	return (false);
+	return (fdeath);
 }
 
 void	*philo_monitor(void *p)
@@ -52,7 +52,8 @@ void	*philo_monitor(void *p)
 				return (NULL);
 			if (philo->lc->global_shifts.is_set)
 			{
-				if (!philo->local_shifts.shifts_nbr)
+				if (!philo_get_uint64(&philo->local_shifts.shifts_nbr,
+						&philo->lc->meal_check.mutex))
 				{
 					philo = philo->flink;
 					continue ;

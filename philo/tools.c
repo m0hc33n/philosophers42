@@ -9,7 +9,8 @@ void	stdlog(t_philo *philo, const char *msg)
 	{
 		pthread_mutex_lock(&philo->lc->stdlog_mutex.mutex);
 		ct = get_current_time() - philo->lc->start_tv;
-		printf("%010lu %d %s\n", ct, philo->id, msg);
+		if (!is_philo_die(philo->lc))
+			printf("%010lu %d %s\n", ct, philo->id, msg);
 		pthread_mutex_unlock(&philo->lc->stdlog_mutex.mutex);
 	}
 }
@@ -40,62 +41,8 @@ bool	fetch_value(char *arg, uint64_t *value)
 	}
 	while (*arg == SPACE)
 		arg++;
-	if (*arg)
+	if (*arg || !res)
 		return (false);
 	*value = res;
 	return (true);
-}
-
-// FREE PHILO LINKED LIST (MOK)
-void	philo_free(t_philo **philo)
-{
-	t_philo	*head;
-	t_philo	*tmp;
-
-	if (philo && *philo)
-	{
-		head = *philo;
-		*philo = (*philo)->flink;
-		while ((*philo)->id > 1)
-		{
-			tmp = (*philo)->flink;
-			memset(*philo, 0, sizeof(t_philo));
-			free(*philo);
-			*philo = tmp;
-		}
-		tmp = NULL;
-		memset(head, 0, sizeof(t_philo));
-		free(head);
-		head = NULL;
-		*philo = NULL;
-	}
-}
-
-// philo_free && CLEAN UP INIT MUTEXES
-void	philo_exit(t_philo **philo, t_lifecycle **lc)
-{
-	if (lc && *lc)
-	{
-		if ((*lc)->stdlog_mutex.mutex_initialized)
-			pthread_mutex_destroy(&(*lc)->stdlog_mutex.mutex);
-		if ((*lc)->meal_check.mutex_initialized)
-			pthread_mutex_destroy(&(*lc)->meal_check.mutex);
-		if ((*lc)->death_check.mutex_initialized)
-			pthread_mutex_destroy(&(*lc)->death_check.mutex);
-		memset(*lc, 0, sizeof(t_lifecycle));
-		free(*lc);
-		*lc = NULL;
-	}
-	if (philo && *philo)
-	{
-		while (true)
-		{
-			if ((*philo)->fork_mutex.mutex_initialized)
-				pthread_mutex_destroy(&(*philo)->fork_mutex.mutex);
-			*philo = (*philo)->flink;
-			if ((*philo)->id == 1)
-				break ;
-		}
-		philo_free(philo);
-	}
 }
