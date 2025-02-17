@@ -9,7 +9,10 @@ void	stdlog(t_philo *philo, const char *msg)
 	{
 		sem_wait(philo->lc->sem_stdlog);
 		ct = get_current_time() - philo->lc->start_tv;
-		printf("%012lu %d %s\n", ct, philo->id, msg);
+		if (!philo->philo_die)
+			printf("%012lu %d %s\n", ct, philo->id, msg);
+		if (*msg == 'd')
+			return ;
 		sem_post(philo->lc->sem_stdlog);
 	}
 }
@@ -40,7 +43,7 @@ bool	fetch_value(char *arg, uint64_t *value)
 	}
 	while (*arg == SPACE)
 		arg++;
-	if (*arg)
+	if (*arg || !res)
 		return (false);
 	*value = res;
 	return (true);
@@ -48,15 +51,5 @@ bool	fetch_value(char *arg, uint64_t *value)
 
 void	err(t_status status)
 {
-	printf("\n[!!] ERROR : %d\n\n", status);
-}
-
-void	destroy_sem(t_lifecycle *lc)
-{
-	sem_close(lc->sem_stdlog);
-	sem_close(lc->sem_pool);
-	sem_close(lc->sem_meal_check);
-	sem_unlink(SEMLOG);
-	sem_unlink(SEMPOOL);
-	sem_unlink(SEMMEAL);
+	printf("\n[!!] ERROR : %#08x\n\n", status);
 }

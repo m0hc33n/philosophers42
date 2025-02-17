@@ -31,7 +31,7 @@
 // SEM NAMES
 # define SEMLOG "/philosem_log" // sem name for stdout logs
 # define SEMPOOL "/philosem_pool" // sem name for forks pool
-# define SEMMEAL "/philosem_mea;"
+# define SEMMEAL "/philosem_meal"
 
 // PID && PPID
 # define CHILDPID 0x0
@@ -46,13 +46,14 @@
 */
 typedef enum e_status
 {
-	SUCCESS = 0,
-	FAILURE = 1,
-	PHILOD = 2,
-	PHILOF = 3,
-	PIDERROR = 100,
-	SEMERROR = 101,
-	ARGERROR = 102
+	SUCCESS		= 0x000000,
+	FAILURE		= 0x000001,
+	ARGERROR	= 0x000002,
+	MALERROR	= 0x000003,
+	PIDERROR	= 0x000004,
+	SEMERROR 	= 0x000005,
+	PHILOD		= 0x000006,
+	PHILOF		= 0x000007,
 }	t_status;
 
 // number_of_times_each_philosopher_must_eat
@@ -64,12 +65,14 @@ typedef struct s_shifts
 
 /*
  * id				<> philosopher id
+ * ppid				<> parent pid
  * pid				<> philo pid
  * local_shifts		<> remaining shifts to eat
  * last_meal_tv		<> self explainatory
  * philo_die		<> when a philo die, its sets to true
- * pthread_tracer	<> a thread to trace philo life `philo_monitor`
  * lc				<> to use semaphores;
+ * flink			<> next philo
+ * blink			<> prev philo
 */
 typedef struct s_philo
 {
@@ -79,8 +82,9 @@ typedef struct s_philo
 	t_shifts			local_shifts;
 	size_t				last_meal_tv;
 	bool				philo_die;
-	pthread_t			pthread_tracer;
 	struct s_lifecycle	*lc;
+	struct s_philo		*flink;
+	struct s_philo		*blink;
 }	t_philo;
 
 /*
@@ -89,7 +93,8 @@ typedef struct s_philo
  * tte				<> timeto_eat
  * tts				<> time_to_sleep
  * global_shifts	<> number_of_times_each_philosopher_must_eat
- * sem_pool			<> 
+ * sem_pool			<> sem used as forks
+ * sem_meal_check	<> sem used to
 */
 typedef struct s_lifecycle
 {
@@ -102,17 +107,19 @@ typedef struct s_lifecycle
 	sem_t			*sem_stdlog;
 	sem_t			*sem_meal_check;
 	size_t			start_tv;
-	t_philo			philosophers[201];
 }	t_lifecycle;
 
 // PHILO INIT
-bool	fetch_value(char *arg, uint64_t *value);
-int32_t	philo_init(t_lifecycle *lc, int ac, char **av);
-void	philo_exit(t_lifecycle *lc);
+t_status	philo_init(t_philo **philo, t_lifecycle **lc,
+				int ac, char **av);
+bool		fetch_value(char *arg, uint64_t *value);
+void		philo_exit(t_philo **philo, t_lifecycle **lc);
 
 // PHILO
 void	*philosophers(void *philo);
-void	*philo_monitor(void *philo);
+//void	*philo_monitor(void *philo);
+bool	is_philo_die(t_philo *philo);
+bool	philo_shifts_finish(t_philo *philo);
 
 // TOOLS
 void	stdlog(t_philo *philo, const char *msg);
