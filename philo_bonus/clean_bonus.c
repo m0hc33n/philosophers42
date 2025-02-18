@@ -4,54 +4,28 @@ void	destroy_sem(t_lifecycle *lc)
 {
 	sem_close(lc->sem_stdlog);
 	sem_close(lc->sem_pool);
-	sem_close(lc->sem_meal_check);
+	sem_close(lc->sem_death);
 	sem_unlink(SEMLOG);
 	sem_unlink(SEMPOOL);
-	sem_unlink(SEMMEAL);
-}
-
-static void	philo_free(t_philo **philo)
-{
-	t_philo	*head;
-	t_philo	*tmp;
-
-	if (philo && *philo)
-	{
-		memset((*philo)->lc, 0, sizeof(t_lifecycle));
-		free((*philo)->lc);
-		(*philo)->lc = NULL;
-		head = *philo;
-		*philo = (*philo)->flink;
-		while ((*philo)->id > 1)
-		{
-			tmp = (*philo)->flink;
-			memset(*philo, 0, sizeof(t_philo));
-			free(*philo);
-			*philo = tmp;
-		}
-		tmp = NULL;
-		memset(head, 0, sizeof(t_philo));
-		free(head);
-		head = NULL;
-		*philo = NULL;
-	}
+	sem_unlink(SEMDEATH);
 }
 
 static void	philo_kill(t_philo *philo)
 {
+	uint64_t	i;
+
+	i = 0;
 	if (philo)
 	{
-		while (true)
+		while (i < philo->lc->philo_nbr)
 		{
-			kill(philo->pid, SIGTERM);
-			philo = philo->flink;
-			if (philo->id == 1)
-				break;
+			kill(philo[i].pid, SIGKILL);
+			i++;
 		}
 	}
 }
 
-void	philo_exit(t_philo **philo, t_lifecycle **lc)
+void	philo_exit(t_philo **philo, t_lifecycle *lc)
 {
 	int32_t		status;
 	uint64_t	i;
@@ -60,19 +34,29 @@ void	philo_exit(t_philo **philo, t_lifecycle **lc)
 	if (philo && *philo)
 	{
 		i = 0;
-		while (i < (*philo)->lc->philo_nbr)
+		while (i < lc->philo_nbr)
 		{
-			waitpid(-1, &status, 0);
+			waitpid(0, &status, 0);
 			if (WIFEXITED(status))
 				exit_status = WEXITSTATUS(status);
 			if (exit_status == PHILOD)
 			{
 				philo_kill(*philo);
 				break ;
-			}
-				i++;
+			}	
+			i++;
 		}
-		destroy_sem(*lc);
-		philo_free(philo);
+		destroy_sem(lc);
+		free(*philo);
+		*philo = NULL;
 	}
+}
+
+void	child_exit(t_philo *philo, t_status status)
+{
+	sem_close(philo->lc->sem_stdlog);
+	sem_close(philo->lc->sem_pool);
+	sem_close(philo->lc->sem_death);
+	free(philo);
+	exit(status);
 }

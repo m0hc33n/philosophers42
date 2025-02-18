@@ -1,5 +1,18 @@
 #include "philo_bonus.h"
 
+static bool	is_philo_die(t_philo *philo)
+{
+	sem_wait(philo->lc->sem_death);
+	if (philo->last_meal_tv
+		&& get_current_time() - philo->last_meal_tv > philo->lc->ttd)
+	{
+		stdlog(philo, DIED);
+		return (true);
+	}
+	sem_post(philo->lc->sem_death);
+	return (false);
+}
+
 static void	philo_eat(t_philo *philo)
 {
 	sem_wait(philo->lc->sem_pool);
@@ -7,63 +20,40 @@ static void	philo_eat(t_philo *philo)
 	sem_wait(philo->lc->sem_pool);
 	stdlog(philo, TAKEFORK);
 	stdlog(philo, ISEATING);
+	if (philo->local_shifts.is_set)
+		philo->local_shifts.shifts_nbr--;
+	sem_wait(philo->lc->sem_death);
 	philo->last_meal_tv = get_current_time();
+	sem_post(philo->lc->sem_death);
 	usleep(philo->lc->tte * 1000);
 	sem_post(philo->lc->sem_pool);
 	sem_post(philo->lc->sem_pool);
 }
 
-static bool	philo_think(t_philo *philo)
+static void	philo_think(t_philo *philo)
 {
 	stdlog(philo, ISTHINKING);
-	if (philo->lc->philo_nbr == 1)
-		usleep(philo->lc->ttd * 1000 + 100);
-	if (is_philo_die(philo))
-		return (false);
-	return (true);
 }
 
-static bool	philo_sleep(t_philo *philo)
+static void	philo_sleep(t_philo *philo)
 {
 	stdlog(philo, ISSLEEPING);
-	if (is_philo_die(philo))
-		return (false);
 	usleep(philo->lc->tts * 1000);
-	return (true);
 }
 
-// static void	init_philo(t_philo *philo, t_philo *p)
-// {
-// 	philo->lc = p->lc;
-// 	philo->id = p->id;
-// 	philo->local_shifts = p->local_shifts;
-// 	philo->philo_die = false;
-// 	philo->last_meal_tv = get_current_time();
-// }
-
-void	*philosophers(void *p)
+void	philosophers(t_philo *philo, uint64_t index)
 {
-	t_philo		*philo;
+	t_philo	*curr_philo;
 
-	//init_philo(&philo, (t_philo *)p);
-	// philo = (t_philo *)p;
-	// philo->last_meal_tv = get_current_time();
-	// if (philo->id % 2 == 0)
-	// 	usleep(15000);
-	// while (true)
-	// {
-	// 	if (!philo_think(philo))
-	// 		break ;
-	// 	philo_eat(philo);
-	// 	if (!philo_sleep(philo))
-	// 		break ;
-	// 	if (is_philo_die(philo))
-	// 		break ;
-	// 	if (philo_shifts_finish(philo))
-	// 		break;
-	// }
-	// if (philo->philo_die)
-	// 	exit(PHILOD);
-	// exit(PHILOF);
-	return (NULL);
+	curr_philo = (t_philo *)(philo + index);
+	curr_philo->last_meal_tv = get_current_time();
+	while (curr_philo->local_shifts.shifts_nbr)
+	{
+		philo_think(curr_philo);
+		philo_eat(curr_philo);
+		philo_sleep(curr_philo);
+		if (is_philo_die(curr_philo))
+			child_exit(philo, PHILOD);
+	}
+	child_exit(philo, PHILOF);
 }

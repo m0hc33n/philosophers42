@@ -1,8 +1,7 @@
 CC 		= cc
-CFLAGS	= #-Wall -Wextra -Werror
+CFLAGS	= -Wall -Wextra -Werror
 
-SRC	= main_bonus.c philo_bonus.c init_bonus.c monitor_bonus.c tools_bonus.c \
-	  clean_bonus.c
+SRC	= main_bonus.c philo_bonus.c init_bonus.c tools_bonus.c clean_bonus.c
 HDR	= philo_bonus.h
 OBJ	= $(SRC:.c=.o)
 

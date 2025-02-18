@@ -16,45 +16,25 @@ static void	usage(void)
 /*
  * # create each philo on a separate child process
 */
-// static int32_t	go(t_lifecycle *lc)
-// {
-// 	int32_t		pid;
-// 	uint64_t	i;
 
-// 	i = 1;
-// 	lc->start_tv = get_current_time();
-// 	while (i <= lc->philo_nbr)
-// 	{
-// 		pid = fork();
-// 		if (pid < 0)
-// 			return (PIDERROR);
-// 		if (pid == CHILDPID)
-// 			philosophers(&lc->philosophers[i]);
-// 		lc->philosophers[i].pid = pid;
-// 		i++;
-// 	}
-// 	return (SUCCESS);
-// }
-
-static t_status	go(t_philo **philo)
+static t_status	go(t_philo *philo)
 {
-	int32_t	pid;
+	int32_t		pid;
+	uint64_t	i;
 
-	//(*philo)->lc->start_tv = get_current_time();
-	while (true)
+	i = 0;
+	philo->lc->start_tv = get_current_time();
+	while (i < philo->lc->philo_nbr)
 	{
 		pid = fork();
 		if (pid < 0)
 			return (PIDERROR);
 		else if (pid == CHILDPID)
-			philosophers(*philo);
+			philosophers(philo, i);
 		else
-		{
-			(*philo)->pid = pid;
-			(*philo) = (*philo)->flink;
-			if ((*philo)->id == 1)
-				break ;
-		}
+			philo[i].pid = pid;
+		i++;
+		usleep(100);
 	}
 	return (SUCCESS);
 }
@@ -65,15 +45,14 @@ static t_status	go(t_philo **philo)
 int	main(int ac, char **av)
 {
 	t_philo		*philo;
-	t_lifecycle	*lc;
+	t_lifecycle	lc;
 	t_status	status;
 
 	philo = NULL;
-	lc = NULL;
 	status = philo_init(&philo, &lc, ac, av);
 	if (status)
 		return (err(status), usage(), philo_exit(&philo, &lc), FAILURE);
-	status = go(&philo);
+	status = go(philo);
 	if (status)
 		return (err(status), philo_exit(&philo, &lc), FAILURE);
 	philo_exit(&philo, &lc);

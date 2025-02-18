@@ -9,11 +9,9 @@ void	stdlog(t_philo *philo, const char *msg)
 	{
 		sem_wait(philo->lc->sem_stdlog);
 		ct = get_current_time() - philo->lc->start_tv;
-		if (!philo->philo_die)
-			printf("%012lu %d %s\n", ct, philo->id, msg);
-		if (*msg == 'd')
-			return ;
-		sem_post(philo->lc->sem_stdlog);
+		printf("%012lu %lu %s\n", ct, philo->id, msg);
+		if (*msg != 'd')
+			sem_post(philo->lc->sem_stdlog);
 	}
 }
 
