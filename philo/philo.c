@@ -14,34 +14,38 @@ static bool	philo_shifts_finish(t_philo *philo)
 			philo_dec_uint64(
 				&philo->lc->global_shifts_nbr,
 				&philo->lc->death_check.mutex,
-				philo->lc->global_shifts.shifts_nbr);
+				philo->lc->global_shifts_nbr);
 			return (true);
 		}
 	}
 	return (false);
 }
 
-static bool	philo_think(t_philo *philo)
+static void	philo_think(t_philo *philo)
 {
 	stdlog(philo, ISTHINKING);
 	if (&philo->flink->fork_mutex.mutex == &philo->fork_mutex.mutex)
-		usleep(philo->lc->ttd * 1000 + 10);
-	return (true);
+		usleep(philo->lc->ttd * 1000 + 100);
 }
 
-static void	philo_eat(t_philo *philo)
+static bool	philo_eat(t_philo *philo)
 {
+	if (is_philo_die(philo->lc))
+		return (false);
 	pthread_mutex_lock(&philo->fork_mutex.mutex);
 	stdlog(philo, TAKEFORK);
+	if (is_philo_die(philo->lc))
+		return (false);
 	pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
 	stdlog(philo, TAKEFORK);
-	pthread_mutex_lock(&philo->lc->meal_check.mutex);
 	stdlog(philo, ISEATING);
+	pthread_mutex_lock(&philo->lc->meal_check.mutex);
 	philo->last_meal_tv = get_current_time();
 	pthread_mutex_unlock(&philo->lc->meal_check.mutex);
 	usleep(philo->lc->tte * 1000);
 	pthread_mutex_unlock(&philo->fork_mutex.mutex);
 	pthread_mutex_unlock(&philo->flink->fork_mutex.mutex);
+	return (true);
 }
 
 static bool	philo_sleep(t_philo *philo)
@@ -62,11 +66,9 @@ void	*philosophers(void *p)
 		usleep(10000);
 	while (true)
 	{
-		if (!philo_think(philo))
+		philo_think(philo);
+		if (!philo_eat(philo))
 			break ;
-		if (is_philo_die(philo->lc))
-			return (false);
-		philo_eat(philo);
 		if (!philo_sleep(philo))
 			break ;
 		if (philo->local_shifts.is_set && philo_shifts_finish(philo))
