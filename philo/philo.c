@@ -25,7 +25,7 @@ static void	philo_think(t_philo *philo)
 {
 	stdlog(philo, ISTHINKING);
 	if (&philo->flink->fork_mutex.mutex == &philo->fork_mutex.mutex)
-		usleep(philo->lc->ttd * 1000 + 100);
+		usleep(philo->lc->ttd * 1000 + 1000);
 }
 
 static bool	philo_eat(t_philo *philo)
