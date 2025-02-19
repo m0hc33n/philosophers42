@@ -16,13 +16,13 @@ static void	usage(void)
 /*
  * # create each philo on a separate child process
 */
-
 static t_status	go(t_philo *philo)
 {
 	int32_t		pid;
 	uint64_t	i;
 
 	i = 0;
+	sem_wait(philo->lc->sem_stop);
 	philo->lc->start_tv = get_current_time();
 	while (i < philo->lc->philo_nbr)
 	{
@@ -30,12 +30,13 @@ static t_status	go(t_philo *philo)
 		if (pid < 0)
 			return (PIDERROR);
 		else if (pid == CHILDPID)
-			philosophers(philo, i);
+			philosophers((t_philo *)(philo + i));
 		else
 			philo[i].pid = pid;
 		i++;
 		usleep(100);
 	}
+	sem_wait(philo->lc->sem_stop);
 	return (SUCCESS);
 }
 

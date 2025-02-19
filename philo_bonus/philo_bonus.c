@@ -1,16 +1,32 @@
 #include "philo_bonus.h"
 
-static bool	is_philo_die(t_philo *philo)
+static void	*monitor(void *p)
 {
-	sem_wait(philo->lc->sem_death);
-	if (philo->last_meal_tv
-		&& get_current_time() - philo->last_meal_tv > philo->lc->ttd)
+	t_philo	*philo;
+
+	philo = (t_philo *)p;
+	while (true)
 	{
-		stdlog(philo, DIED);
-		return (true);
+		sem_wait(philo->lc->sem_death);
+		if (philo->last_meal_tv
+			&& get_current_time() - philo->last_meal_tv > philo->lc->ttd)
+		{
+			stdlog(philo, DIED);
+			sem_post(philo->lc->sem_stop);
+			break ;
+		}
+		if (philo->local_shifts.is_set)
+		{
+			if (philo->local_shifts.shifts_nbr >= philo->lc->global_shifts_nbr)
+			{
+				sem_post(philo->lc->sem_stop);
+				break ;
+			}
+		}
+		sem_post(philo->lc->sem_death);
+		usleep(philo->lc->ttd * 100);
 	}
-	sem_post(philo->lc->sem_death);
-	return (false);
+	return (NULL);
 }
 
 static void	philo_eat(t_philo *philo)
@@ -20,9 +36,9 @@ static void	philo_eat(t_philo *philo)
 	sem_wait(philo->lc->sem_pool);
 	stdlog(philo, TAKEFORK);
 	stdlog(philo, ISEATING);
-	if (philo->local_shifts.is_set)
-		philo->local_shifts.shifts_nbr--;
 	sem_wait(philo->lc->sem_death);
+	if (philo->local_shifts.is_set)
+		philo->local_shifts.shifts_nbr++;
 	philo->last_meal_tv = get_current_time();
 	sem_post(philo->lc->sem_death);
 	usleep(philo->lc->tte * 1000);
@@ -41,19 +57,22 @@ static void	philo_sleep(t_philo *philo)
 	usleep(philo->lc->tts * 1000);
 }
 
-void	philosophers(t_philo *philo, uint64_t index)
+void	philosophers(t_philo *philo)
 {
-	t_philo	*curr_philo;
+	pthread_t	monitorid;
 
-	curr_philo = (t_philo *)(philo + index);
-	curr_philo->last_meal_tv = get_current_time();
-	while (curr_philo->local_shifts.shifts_nbr)
+	philo->last_meal_tv = get_current_time();
+	if (pthread_create(&monitorid, NULL, monitor, (void *)philo) != 0)
 	{
-		philo_think(curr_philo);
-		philo_eat(curr_philo);
-		philo_sleep(curr_philo);
-		if (is_philo_die(curr_philo))
-			child_exit(philo, PHILOD);
+		stdlog(philo, DIED);
+		sem_post(philo->lc->sem_stop);
+		return ;
 	}
-	child_exit(philo, PHILOF);
+	pthread_detach(monitorid);
+	while (true)
+	{
+		philo_think(philo);
+		philo_eat(philo);
+		philo_sleep(philo);
+	}
 }

@@ -5,7 +5,7 @@ void	stdlog(t_philo *philo, const char *msg)
 {
 	size_t	ct;
 
-	if (philo && !philo->philo_die)
+	if (philo)
 	{
 		sem_wait(philo->lc->sem_stdlog);
 		ct = get_current_time() - philo->lc->start_tv;
