@@ -29,8 +29,9 @@ static void	*monitor(void *p)
 	return (NULL);
 }
 
-static void	philo_eat(t_philo *philo)
+static void	philo_think_eat(t_philo *philo)
 {
+	stdlog(philo, ISTHINKING);
 	sem_wait(philo->lc->sem_pool);
 	stdlog(philo, TAKEFORK);
 	sem_wait(philo->lc->sem_pool);
@@ -44,11 +45,6 @@ static void	philo_eat(t_philo *philo)
 	usleep(philo->lc->tte * 1000);
 	sem_post(philo->lc->sem_pool);
 	sem_post(philo->lc->sem_pool);
-}
-
-static void	philo_think(t_philo *philo)
-{
-	stdlog(philo, ISTHINKING);
 }
 
 static void	philo_sleep(t_philo *philo)
@@ -71,8 +67,7 @@ void	philosophers(t_philo *philo)
 	pthread_detach(monitorid);
 	while (true)
 	{
-		philo_think(philo);
-		philo_eat(philo);
+		philo_think_eat(philo);
 		philo_sleep(philo);
 	}
 }

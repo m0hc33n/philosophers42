@@ -21,23 +21,31 @@ static bool	philo_shifts_finish(t_philo *philo)
 	return (false);
 }
 
-static void	philo_think(t_philo *philo)
+static bool	philo_take_forks(t_philo *philo)
 {
-	stdlog(philo, ISTHINKING);
-	if (&philo->flink->fork_mutex.mutex == &philo->fork_mutex.mutex)
-		usleep(philo->lc->ttd * 1000 + 1000);
+	if (philo->flink == philo)
+	{
+		usleep(philo->lc->ttd + 100);
+		return (false);
+	}
+	if (philo->id % 2)
+		pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
+	else
+		pthread_mutex_lock(&philo->fork_mutex.mutex);
+	stdlog(philo, TAKEFORK);
+	if (philo->id % 2)
+		pthread_mutex_lock(&philo->fork_mutex.mutex);
+	else
+		pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
+	stdlog(philo, TAKEFORK);
+	return (true);
 }
 
 static bool	philo_eat(t_philo *philo)
 {
-	if (is_philo_die(philo->lc))
+	stdlog(philo, ISTHINKING);
+	if (!philo_take_forks(philo))
 		return (false);
-	pthread_mutex_lock(&philo->fork_mutex.mutex);
-	stdlog(philo, TAKEFORK);
-	if (is_philo_die(philo->lc))
-		return (false);
-	pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
-	stdlog(philo, TAKEFORK);
 	stdlog(philo, ISEATING);
 	pthread_mutex_lock(&philo->lc->meal_check.mutex);
 	philo->last_meal_tv = get_current_time();
@@ -66,12 +74,13 @@ void	*philosophers(void *p)
 		usleep(10000);
 	while (true)
 	{
-		philo_think(philo);
 		if (!philo_eat(philo))
 			break ;
 		if (!philo_sleep(philo))
 			break ;
 		if (philo->local_shifts.is_set && philo_shifts_finish(philo))
+			break ;
+		if (is_philo_die(philo->lc))
 			break ;
 	}
 	return (NULL);
