@@ -8,7 +8,7 @@ OBJ	= $(SRC:.c=.o)
 all : philosophers_bonus
 
 philosophers_bonus : $(OBJ)
-	$(CC) $(CFLAGS) -lpthread $(OBJ) -o philosophers_bonus
+	$(CC) $(CFLAGS) -lpthread $(OBJ) -o philo_bonus
 
 $(OBJ) : $(HDR)
 
@@ -16,7 +16,7 @@ clean :
 	rm -f $(OBJ)
 
 fclean : clean
-	rm -f philosophers_bonus
+	rm -f philo_bonus
 
 re : fclean all
 

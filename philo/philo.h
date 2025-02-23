@@ -113,7 +113,7 @@ bool		is_philo_die(t_lifecycle *lc);
 void		stdlog(t_philo *philo, const char *msg);
 size_t		get_current_time(void);
 uint64_t	philo_get_uint64(void *var, pthread_mutex_t *pmutex);
-void		philo_dec_uint64(void *var, pthread_mutex_t *pmutex, uint64_t dec);
+uint64_t	philo_dec_uint64(void *var, pthread_mutex_t *pmutex, uint64_t dec);
 void		philo_set_uint64(void *var, uint64_t val, pthread_mutex_t *pmutex);
 
 #endif

@@ -2,19 +2,20 @@
 
 static bool	philo_shifts_finish(t_philo *philo)
 {
+	uint64_t	r;
+
 	if (philo->lc->global_shifts.is_set)
 	{
-		philo_dec_uint64(
+		r = philo_dec_uint64(
 			&philo->local_shifts.shifts_nbr,
 			&philo->lc->meal_check.mutex,
 			1);
-		if (!philo_get_uint64(&philo->local_shifts.shifts_nbr,
-				&philo->lc->meal_check.mutex))
+		if (!r)
 		{
 			philo_dec_uint64(
 				&philo->lc->global_shifts_nbr,
 				&philo->lc->death_check.mutex,
-				philo->lc->global_shifts_nbr);
+				philo->lc->global_shifts.shifts_nbr);
 			return (true);
 		}
 	}
@@ -64,8 +65,8 @@ void	*philosophers(void *p)
 	t_philo	*philo;
 
 	philo = (t_philo *)p;
-	if (philo->id % 2 == 0)
-		usleep(10000);
+	if (philo->id % 2)
+		usleep(1000);
 	while (true)
 	{
 		if (!philo_eat(philo))

@@ -8,8 +8,7 @@ static void	*monitor(void *p)
 	while (true)
 	{
 		sem_wait(philo->lc->sem_death);
-		if (philo->last_meal_tv
-			&& get_current_time() - philo->last_meal_tv > philo->lc->ttd)
+		if (get_current_time() - philo->last_meal_tv > philo->lc->ttd)
 		{
 			stdlog(philo, DIED);
 			sem_post(philo->lc->sem_stop);
