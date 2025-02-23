@@ -5,11 +5,13 @@ void	stdlog(t_philo *philo, const char *msg)
 {
 	size_t	ct;
 
-	if (philo && !is_philo_die(philo->lc))
+	if (philo)
 	{
 		pthread_mutex_lock(&philo->lc->stdlog_mutex.mutex);
 		ct = get_current_time() - philo->lc->start_tv;
-		if (!is_philo_die(philo->lc))
+		if (*msg == 100)
+			printf("%010lu %d %s\n", ct, philo->id, msg);
+		else if (!is_philo_die(philo->lc))
 			printf("%010lu %d %s\n", ct, philo->id, msg);
 		pthread_mutex_unlock(&philo->lc->stdlog_mutex.mutex);
 	}

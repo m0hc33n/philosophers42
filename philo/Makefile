@@ -1,6 +1,5 @@
 CC 		= cc 
-CFLAGS	= -Wall -Wextra -Werror #-fsanitize=thread
-
+CFLAGS	= -Wall -Wextra -Werror
 SRC	= main.c philo.c init.c monitor.c tools.c clean.c mutex_op.c
 HDR	= philo.h
 OBJ	= $(SRC:.c=.o)

@@ -8,7 +8,7 @@ OBJ	= $(SRC:.c=.o)
 all : philosophers_bonus
 
 philosophers_bonus : $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o philosophers_bonus
+	$(CC) $(CFLAGS) -lpthread $(OBJ) -o philosophers_bonus
 
 $(OBJ) : $(HDR)
 
