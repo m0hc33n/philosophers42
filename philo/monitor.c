@@ -30,10 +30,10 @@ static bool	death_monitor(t_philo *philo)
 	ltv = philo_get_uint64(&philo->last_meal_tv, &philo->lc->meal_check.mutex);
 	if (ltv && tv - ltv > philo->lc->ttd)
 	{
-		philo->lc->philo_die = true;
-		stdlog(philo, DIED);
 		pthread_mutex_lock(&philo->lc->death_check.mutex);
+		philo->lc->philo_die = true;
 		pthread_mutex_unlock(&philo->lc->death_check.mutex);
+		stdlog(philo, DIED);
 		fdeath = true;
 	}
 	return (fdeath);

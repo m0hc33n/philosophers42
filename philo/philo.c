@@ -25,18 +25,12 @@ static bool	philo_take_forks(t_philo *philo)
 {
 	if (philo->flink == philo)
 	{
-		usleep(philo->lc->ttd + 100);
-		return (false);
+	 	usleep(philo->lc->ttd + 100);
+	 	return (false);
 	}
-	if (philo->id % 2)
-		pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
-	else
-		pthread_mutex_lock(&philo->fork_mutex.mutex);
+	pthread_mutex_lock(&philo->fork_mutex.mutex);
 	stdlog(philo, TAKEFORK);
-	if (philo->id % 2)
-		pthread_mutex_lock(&philo->fork_mutex.mutex);
-	else
-		pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
+	pthread_mutex_lock(&philo->flink->fork_mutex.mutex);
 	stdlog(philo, TAKEFORK);
 	return (true);
 }
